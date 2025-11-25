@@ -1,6 +1,9 @@
+version: '3.8'
+
 services:
   pg:
-    image: postgres
+    image: postgres:16-alpine
+    container_name: auth_postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-auth_system}
       POSTGRES_USER: ${POSTGRES_USER:-auth_user}
@@ -19,22 +22,35 @@ services:
     restart: unless-stopped
 
   adminer:
-    image: adminer
+    image: adminer:latest
+    container_name: auth_adminer
     ports:
       - "8080:8080"
     networks:
       - auth_net
+    depends_on:
+      pg:
+        condition: service_healthy
+    restart: unless-stopped
 
   pgadmin:
-    image: dpage/pgadmin4
+    image: dpage/pgadmin4:latest
+    container_name: auth_pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.org
-      PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@admin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: ${PGADMIN_CONFIG_SERVER_MODE:-False}
     ports:
       - "5050:80"
     networks:
       - auth_net
+    depends_on:
+      pg:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
 networks:
   auth_net:
     driver: bridge
