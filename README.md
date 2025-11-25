@@ -6,11 +6,11 @@ auth_system/
 │   ├── db_helper.py      # ✅ AsyncSession helper
 │   ├── models.py         # ✅ Все SQLAlchemy модели
 │   ├── schemas.py        # ✅ Pydantic схемы
-│   └── config.py         # ⚠️ ДОБАВЬ! Настройки из .env
+│   └── config.py         # ⚠️ Настройки из .env
 ├── services/
 │   ├── __init__.py
 │   ├── auth_service.py   # ✅ Аутентификация
-│   └── authz_service.py  # ✅ Авторизация (новый!)
+│   └── authz_service.py  # ✅ Авторизация 
 ├── routes/
 │   ├── __init__.py
 │   ├── auth.py           # ✅ /auth/* endpoints
