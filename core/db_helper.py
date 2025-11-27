@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import (
 )
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from ..config import settings
+from config import settings
 
 
 class DatabaseHelper:

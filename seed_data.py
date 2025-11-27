@@ -11,7 +11,7 @@ from services.auth_service import AuthService
 async def seed_database():
     """Заполняет БД тестовыми ролями, элементами, правилами и пользователями"""
     async with db_helper.session_factory() as session:
-        print("🌱 Seeding database...")
+        print("Seeding database...")
 
         # 1. Создаём роли
         admin_role = Role(name="admin", description="Полный доступ ко всем ресурсам")
@@ -23,7 +23,7 @@ async def seed_database():
         await session.refresh(admin_role)
         await session.refresh(manager_role)
         await session.refresh(user_role)
-        print("✅ Roles created: admin, manager, user")
+        print("Roles created: admin, manager, user")
 
         # 2. Создаём бизнес-элементы (ресурсы)
         projects_el = BusinessElement(name="projects", description="Проекты")
@@ -35,7 +35,7 @@ async def seed_database():
         await session.refresh(projects_el)
         await session.refresh(users_el)
         await session.refresh(rules_el)
-        print("✅ Business elements created: projects, users, access_rules")
+        print("Business elements created: projects, users, access_rules")
 
         # 3. Правила для админа (полный доступ ко всему)
         admin_rules = []
@@ -74,12 +74,12 @@ async def seed_database():
         session.add(user_projects_rule)
 
         await session.commit()
-        print("✅ Access rules created (admin: full, manager: read all + edit own, user: own only)")
+        print("Access rules created (admin: full, manager: read all + edit own, user: own only)")
 
         # 6. Создаём тестовых пользователей
         admin_user = User(
             email="admin@test.com",
-            pass_hash=AuthService.get_password_hash("admin123"),
+            pass_hash=AuthService.get_password_hash("admin"),
             is_active=True,
         )
         session.add(admin_user)
