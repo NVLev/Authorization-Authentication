@@ -1,17 +1,24 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
-from jose import JWTError, jwt
-
-from config import settings
-from services.auth_service import AuthService, pwd_context
-from core.db_helper import db_helper
-from core.models import User, RefreshToken
-from core.schemas import Token, TokenResponse, UserCreate, UserRead, LoginRequest, RefreshTokenRequest
-from middleware.permissions import get_current_user
 from fastapi import APIRouter, Depends, HTTPException
+from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
+
+from config import settings
+from core.db_helper import db_helper
+from core.models import RefreshToken, User
+from core.schemas import (
+    LoginRequest,
+    RefreshTokenRequest,
+    Token,
+    TokenResponse,
+    UserCreate,
+    UserRead,
+)
+from middleware.permissions import get_current_user
+from services.auth_service import AuthService, pwd_context
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -24,9 +31,9 @@ async def register(
     user_data: UserCreate, session: AsyncSession = Depends(db_helper.session_getter)
 ):
     """
-       Регистрация нового пользователя.
-       Возвращает данные пользователя без роли (роль можно назначить через админку).
-       """
+    Регистрация нового пользователя.
+    Возвращает данные пользователя без роли (роль можно назначить через админку).
+    """
     try:
         user = await AuthService.register(user_data, session)
 
@@ -52,14 +59,15 @@ async def register(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Ошибка сервера")
 
+
 @router.post("/login", response_model=TokenResponse)
 async def login(
     credentials: LoginRequest, session: AsyncSession = Depends(db_helper.session_getter)
 ):
     """
-       Регистрация нового пользователя.
-       Возвращает данные пользователя без роли (роль можно назначить через админку).
-       """
+    Регистрация нового пользователя.
+    Возвращает данные пользователя без роли (роль можно назначить через админку).
+    """
     tokens = await AuthService.authenticate(
         credentials.email, credentials.password, session
     )
@@ -76,19 +84,20 @@ async def login(
 @router.post("/refresh", response_model=Token)
 async def refresh(
     token_data: RefreshTokenRequest,
-    session: AsyncSession = Depends(db_helper.session_getter)
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
     """Обновление access_token по refresh_token."""
     user_id = await AuthService.verify_refresh_token(token_data.refresh_token, session)
     if not user_id:
         raise HTTPException(
-            status_code=401,
-            detail="Неверный или просроченный refresh токен"
+            status_code=401, detail="Неверный или просроченный refresh токен"
         )
 
     new_access = AuthService.create_access_token({"sub": str(user_id)})
     new_refresh = AuthService.create_refresh_token(user_id)  # ⬅️ Создаём
-    await AuthService.persist_refresh_token(user_id, new_refresh, session)  # ⬅️ Сохраняем
+    await AuthService.persist_refresh_token(
+        user_id, new_refresh, session
+    )  # ⬅️ Сохраняем
 
     return {
         "access_token": new_access,
@@ -96,20 +105,22 @@ async def refresh(
         "token_type": "bearer",
     }
 
+
 @router.post("/logout")
 async def logout(
-    token_data: RefreshTokenRequest, session: AsyncSession = Depends(db_helper.session_getter)
+    token_data: RefreshTokenRequest,
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
     """
-        Выход из системы.
-        Отзывает refresh_token.
-        """
+    Выход из системы.
+    Отзывает refresh_token.
+    """
     refresh_token = token_data.refresh_token
     try:
         payload = jwt.decode(
             refresh_token,
             settings.auth.secret_key,
-            algorithms=[settings.auth.algorithm]
+            algorithms=[settings.auth.algorithm],
         )
         user_id = int(payload.get("sub"))
         if payload.get("type") != "refresh":
@@ -118,8 +129,8 @@ async def logout(
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
     stmt = select(RefreshToken).where(
-        RefreshToken.user_id == user_id,
-        RefreshToken.revoked == False)
+        RefreshToken.user_id == user_id, RefreshToken.revoked == False
+    )
     result = await session.execute(stmt)
     tokens = result.scalars().all()
     for token in tokens:
@@ -131,6 +142,7 @@ async def logout(
             return {"message": "Выход выполнен"}
     raise HTTPException(status_code=400, detail="Токен не найден")
 
+
 @router.get("/me", response_model=UserRead)
 async def get_me(
     current_user: User = Depends(get_current_user),
@@ -141,9 +153,7 @@ async def get_me(
     Требует авторизации (Bearer token).
     """
     stmt = (
-        select(User)
-        .where(User.id == current_user.id)
-        .options(selectinload(User.roles))
+        select(User).where(User.id == current_user.id).options(selectinload(User.roles))
     )
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
@@ -156,5 +166,5 @@ async def get_me(
         email=user.email,
         is_active=user.is_active,
         created_at=user.created_at,
-        roles=[role.name for role in user.roles]
+        roles=[role.name for role in user.roles],
     )

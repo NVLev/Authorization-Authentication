@@ -2,9 +2,11 @@
 Скрипт для заполнения БД тестовыми данными.
 Запуск: python seed_data.py
 """
+
 import asyncio
+
 from core.db_helper import db_helper
-from core.models import Role, BusinessElement, AccessRule, User, UserRole
+from core.models import AccessRule, BusinessElement, Role, User, UserRole
 from services.auth_service import AuthService
 
 
@@ -46,7 +48,7 @@ async def seed_database():
                 read_all_permission=True,
                 create_permission=True,
                 update_all_permission=True,
-                delete_all_permission=True
+                delete_all_permission=True,
             )
             admin_rules.append(rule)
         session.add_all(admin_rules)
@@ -74,7 +76,9 @@ async def seed_database():
         session.add(user_projects_rule)
 
         await session.commit()
-        print("Access rules created (admin: full, manager: read all + edit own, user: own only)")
+        print(
+            "Access rules created (admin: full, manager: read all + edit own, user: own only)"
+        )
 
         # 6. Создаём тестовых пользователей
         admin_user = User(
@@ -86,7 +90,6 @@ async def seed_database():
         await session.flush()
         admin_user_role = UserRole(user_id=admin_user.id, role_id=admin_role.id)
         session.add(admin_user_role)
-
 
         manager_user = User(
             email="manager@test.com",

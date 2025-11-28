@@ -1,35 +1,34 @@
-from logging.config import fileConfig
-from sqlalchemy import pool, text
-from sqlalchemy.ext.asyncio import async_engine_from_config
 import asyncio
 import os
 import sys
+from logging.config import fileConfig
+
+from sqlalchemy import pool, text
+from sqlalchemy.ext.asyncio import async_engine_from_config
 
 # Добавляем корень проекта в sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from alembic import context
+from config import settings
 
 # Импортируем ВСЕ модели явно (критически важно!)
 from core.models import (
-    Base,
-    User,
-    Role,
-    UserRole,
-    RefreshToken,
-    BusinessElement,
     AccessRule,
-    Project
+    Base,
+    BusinessElement,
+    Project,
+    RefreshToken,
+    Role,
+    User,
+    UserRole,
 )
-from config import settings
-from alembic import context
 
 # Alembic Config
 config = context.config
 
 # Устанавливаем URL из настроек
-config.set_main_option(
-    "sqlalchemy.url",
-    os.getenv("DATABASE_URL") or settings.db.url
-)
+config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL") or settings.db.url)
 
 # Настройка логирования
 if config.config_file_name is not None:

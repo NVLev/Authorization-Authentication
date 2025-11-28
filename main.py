@@ -1,10 +1,11 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
 
-from routes import auth, admin, mock_resourses  # ⬅️ Теперь все импорты работают
 from core.db_helper import db_helper
+from routes import admin, auth, mock_resourses  # ⬅️ Теперь все импорты работают
 
 
 @asynccontextmanager
@@ -64,13 +65,13 @@ async def root():
         "endpoints": {
             "auth": "/auth/*",
             "admin": "/admin/* (только для admin)",
-            "projects": "/projects/* (демо-ресурс)"
+            "projects": "/projects/* (демо-ресурс)",
         },
         "test_accounts": {
             "admin": "admin@test.com / admin123",
             "manager": "manager@test.com / manager123",
-            "user": "user@test.com / user123"
-        }
+            "user": "user@test.com / user123",
+        },
     }
 
 
@@ -81,9 +82,4 @@ async def health():
 
 
 if __name__ == "__main__":
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True
-    )
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

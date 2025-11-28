@@ -1,31 +1,30 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db_helper import db_helper
-from core.models import Role, BusinessElement, AccessRule
+from core.models import AccessRule, BusinessElement, Role
 from core.schemas import (
-    RoleCreate, RoleRead,
-    BusinessElementCreate, BusinessElementRead,
-    AccessRuleCreate, AccessRuleUpdate, AccessRuleRead
+    AccessRuleCreate,
+    AccessRuleRead,
+    AccessRuleUpdate,
+    BusinessElementCreate,
+    BusinessElementRead,
+    RoleCreate,
+    RoleRead,
 )
 from middleware.permissions import require_admin
 
-router = APIRouter(
-    prefix="/admin",
-    tags=["Admin"]
-)
+router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
 @router.post("/roles", response_model=RoleRead)
 async def create_role(
-        data: RoleCreate,
-        admin=Depends(require_admin),
-        session: AsyncSession = Depends(db_helper.session_getter),
+    data: RoleCreate,
+    admin=Depends(require_admin),
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
-    existing = await session.execute(
-        select(Role).where(Role.name == data.name)
-    )
+    existing = await session.execute(select(Role).where(Role.name == data.name))
     if existing.scalar_one_or_none():
         raise HTTPException(400, detail="Role already exists")
 
@@ -38,19 +37,18 @@ async def create_role(
 
 @router.get("/roles", response_model=list[RoleRead])
 async def list_roles(
-        admin=Depends(require_admin),
-        session: AsyncSession = Depends(db_helper.session_getter)
+    admin=Depends(require_admin),
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
     result = await session.execute(select(Role))
     return result.scalars().all()
 
 
-
 @router.post("/resources", response_model=BusinessElementRead)
 async def create_resource(
-        data: BusinessElementCreate,
-        admin=Depends(require_admin),
-        session: AsyncSession = Depends(db_helper.session_getter),
+    data: BusinessElementCreate,
+    admin=Depends(require_admin),
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
     existing = await session.execute(
         select(BusinessElement).where(BusinessElement.name == data.name)
@@ -67,8 +65,8 @@ async def create_resource(
 
 @router.get("/resources", response_model=list[BusinessElementRead])
 async def list_resources(
-        admin=Depends(require_admin),
-        session: AsyncSession = Depends(db_helper.session_getter)
+    admin=Depends(require_admin),
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
     result = await session.execute(select(BusinessElement))
     return result.scalars().all()
@@ -76,25 +74,22 @@ async def list_resources(
 
 @router.post("/rules", response_model=AccessRuleRead)
 async def create_rule(
-        data: AccessRuleCreate,
-        admin=Depends(require_admin),
-        session: AsyncSession = Depends(db_helper.session_getter),
+    data: AccessRuleCreate,
+    admin=Depends(require_admin),
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
 
     role = await session.get(Role, data.role_id)
     if not role:
         raise HTTPException(404, detail="Role not found")
 
-
     element = await session.get(BusinessElement, data.element_id)
     if not element:
         raise HTTPException(404, detail="Resource not found")
 
-
     existing = await session.execute(
         select(AccessRule).where(
-            AccessRule.role_id == data.role_id,
-            AccessRule.element_id == data.element_id
+            AccessRule.role_id == data.role_id, AccessRule.element_id == data.element_id
         )
     )
     if existing.scalar_one_or_none():
@@ -106,17 +101,14 @@ async def create_rule(
     await session.refresh(rule)
 
     return AccessRuleRead(
-        **data.model_dump(),
-        id=rule.id,
-        role_name=role.name,
-        element_name=element.name
+        **data.model_dump(), id=rule.id, role_name=role.name, element_name=element.name
     )
 
 
 @router.get("/rules", response_model=list[AccessRuleRead])
 async def list_rules(
-        admin=Depends(require_admin),
-        session: AsyncSession = Depends(db_helper.session_getter)
+    admin=Depends(require_admin),
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
     result = await session.execute(
         select(AccessRule, Role, BusinessElement)
@@ -139,7 +131,7 @@ async def list_rules(
                 delete_permission=rule.delete_permission,
                 delete_all_permission=rule.delete_all_permission,
                 role_name=role.name,
-                element_name=element.name
+                element_name=element.name,
             )
         )
     return items
@@ -147,10 +139,10 @@ async def list_rules(
 
 @router.patch("/rules/{rule_id}", response_model=AccessRuleRead)
 async def update_rule(
-        rule_id: int,
-        data: AccessRuleUpdate,
-        admin=Depends(require_admin),
-        session: AsyncSession = Depends(db_helper.session_getter),
+    rule_id: int,
+    data: AccessRuleUpdate,
+    admin=Depends(require_admin),
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
     rule = await session.get(AccessRule, rule_id)
     if not rule:
@@ -180,5 +172,5 @@ async def update_rule(
         delete_permission=rule.delete_permission,
         delete_all_permission=rule.delete_all_permission,
         role_name=role.name,
-        element_name=element.name
+        element_name=element.name,
     )

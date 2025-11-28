@@ -1,16 +1,17 @@
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Any
+from typing import Any, Optional
 
-from config import settings
-from core.db_helper import db_helper
-from core.models import RefreshToken, User, Role
-from core.schemas import UserCreate  
 from fastapi import Depends, HTTPException, status
-from jose import jwt, JWTError
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
+
+from config import settings
+from core.db_helper import db_helper
+from core.models import RefreshToken, Role, User
+from core.schemas import UserCreate
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -21,6 +22,7 @@ class AuthService:
     Включает хеширование паролей, верификацию, создание JWT-токенов,
     регистрацию и аутентификацию пользователей.
     """
+
     @staticmethod
     def get_password_hash(password: str) -> str:
         """
@@ -72,10 +74,7 @@ class AuthService:
 
     @classmethod
     async def persist_refresh_token(
-            cls,
-            user_id: int,
-            refresh_token: str,
-            session: AsyncSession
+        cls, user_id: int, refresh_token: str, session: AsyncSession
     ):
         # Отзываем старые токены
         stmt = select(RefreshToken).where(
@@ -91,7 +90,8 @@ class AuthService:
         new_token = RefreshToken(
             user_id=user_id,
             token_hash=hashed,
-            expires_at=datetime.now(timezone.utc) + timedelta(days=settings.auth.REFRESH_EXPIRE_DAYS),
+            expires_at=datetime.now(timezone.utc)
+            + timedelta(days=settings.auth.REFRESH_EXPIRE_DAYS),
             revoked=False,
         )
         session.add(new_token)
@@ -99,9 +99,9 @@ class AuthService:
 
     @classmethod
     async def register(
-            cls,
-            user_data: UserCreate,
-            session: AsyncSession = Depends(db_helper.session_getter),
+        cls,
+        user_data: UserCreate,
+        session: AsyncSession = Depends(db_helper.session_getter),
     ) -> User:
         """
         Регистрация нового пользователя.
@@ -115,8 +115,7 @@ class AuthService:
         )
         if existing_user.scalar_one_or_none():
             raise HTTPException(
-                status_code=400,
-                detail="Пользователь с таким email уже существует"
+                status_code=400, detail="Пользователь с таким email уже существует"
             )
 
         user = User(
@@ -133,8 +132,7 @@ class AuthService:
         except Exception as e:
             await session.rollback()
             raise HTTPException(
-                status_code=500,
-                detail=f"Ошибка при создании пользователя: {str(e)}"
+                status_code=500, detail=f"Ошибка при создании пользователя: {str(e)}"
             )
 
     @classmethod
@@ -155,10 +153,7 @@ class AuthService:
         stmt = (
             select(User)
             .where(User.email == email)
-            .options(
-                selectinload(User.refresh_tokens),
-                selectinload(User.roles)
-            )
+            .options(selectinload(User.refresh_tokens), selectinload(User.roles))
             .execution_options(populate_existing=True)
         )
         result = await session.execute(stmt)
@@ -188,7 +183,7 @@ class AuthService:
             "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "bearer",
-            "user_id": user.id
+            "user_id": user.id,
         }
 
     @classmethod
@@ -215,7 +210,7 @@ class AuthService:
             payload = jwt.decode(
                 refresh_token,
                 settings.auth.secret_key,
-                algorithms=[settings.auth.algorithm]
+                algorithms=[settings.auth.algorithm],
             )
             user_id = int(payload.get("sub"))
             if payload.get("type") != "refresh":

@@ -20,9 +20,13 @@ dependencies = [
     "passlib[bcrypt] (>=1.7.4,<2.0.0)",
     "bcrypt (==4.0.1)",
     "black (>=25.11.0,<26.0.0)",
+    "isort (>=7.0.0,<8.0.0)",
 ]
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"

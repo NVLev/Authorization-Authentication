@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db_helper import db_helper
 from core.models import Project
@@ -8,16 +8,13 @@ from core.schemas import ProjectCreate, ProjectRead, ProjectUpdate
 from middleware.permissions import get_current_user
 from services.authz_service import AuthorizationService
 
-router = APIRouter(
-    prefix="/projects",
-    tags=["Projects (Mock Resources)"]
-)
+router = APIRouter(prefix="/projects", tags=["Projects (Mock Resources)"])
 
 
 @router.get("/", response_model=list[ProjectRead])
 async def list_projects(
-        user=Depends(get_current_user),
-        session: AsyncSession = Depends(db_helper.session_getter)
+    user=Depends(get_current_user),
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
     # Проверяем право read_all
     allowed = await AuthorizationService.check_permission(
@@ -25,13 +22,13 @@ async def list_projects(
         element_name="projects",
         action="read",
         session=session,
-        resource_owner_id=None  # неважно
+        resource_owner_id=None,  # неважно
     )
 
     if not allowed:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to read projects"
+            detail="You do not have permission to read projects",
         )
 
     result = await session.execute(select(Project))
@@ -40,28 +37,20 @@ async def list_projects(
 
 @router.post("/", response_model=ProjectRead)
 async def create_project(
-        data: ProjectCreate,
-        user=Depends(get_current_user),
-        session: AsyncSession = Depends(db_helper.session_getter)
+    data: ProjectCreate,
+    user=Depends(get_current_user),
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
     allowed = await AuthorizationService.check_permission(
-        user=user,
-        element_name="projects",
-        action="create",
-        session=session
+        user=user, element_name="projects", action="create", session=session
     )
 
     if not allowed:
         raise HTTPException(
-            status_code=403,
-            detail="You do not have permission to create projects"
+            status_code=403, detail="You do not have permission to create projects"
         )
 
-    project = Project(
-        title=data.title,
-        description=data.description,
-        owner_id=user.id
-    )
+    project = Project(title=data.title, description=data.description, owner_id=user.id)
 
     session.add(project)
     await session.commit()
@@ -72,9 +61,9 @@ async def create_project(
 
 @router.get("/{project_id}", response_model=ProjectRead)
 async def get_project(
-        project_id: int,
-        user=Depends(get_current_user),
-        session: AsyncSession = Depends(db_helper.session_getter)
+    project_id: int,
+    user=Depends(get_current_user),
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
     project = await session.get(Project, project_id)
     if not project:
@@ -85,7 +74,7 @@ async def get_project(
         element_name="projects",
         action="read",
         resource_owner_id=project.owner_id,
-        session=session
+        session=session,
     )
 
     if not allowed:
@@ -96,10 +85,10 @@ async def get_project(
 
 @router.patch("/{project_id}", response_model=ProjectRead)
 async def update_project(
-        project_id: int,
-        data: ProjectUpdate,
-        user=Depends(get_current_user),
-        session: AsyncSession = Depends(db_helper.session_getter)
+    project_id: int,
+    data: ProjectUpdate,
+    user=Depends(get_current_user),
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
     project = await session.get(Project, project_id)
     if not project:
@@ -110,7 +99,7 @@ async def update_project(
         element_name="projects",
         action="update",
         resource_owner_id=project.owner_id,
-        session=session
+        session=session,
     )
 
     if not allowed:
@@ -128,9 +117,9 @@ async def update_project(
 
 @router.delete("/{project_id}")
 async def delete_project(
-        project_id: int,
-        user=Depends(get_current_user),
-        session: AsyncSession = Depends(db_helper.session_getter)
+    project_id: int,
+    user=Depends(get_current_user),
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
     project = await session.get(Project, project_id)
     if not project:
@@ -141,7 +130,7 @@ async def delete_project(
         element_name="projects",
         action="delete",
         resource_owner_id=project.owner_id,
-        session=session
+        session=session,
     )
 
     if not allowed:

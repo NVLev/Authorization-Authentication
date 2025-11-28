@@ -1,6 +1,7 @@
 from typing import Optional
+
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,8 +16,8 @@ security = HTTPBearer()
 
 
 async def get_current_user(
-        credentials: HTTPAuthorizationCredentials = Depends(security),
-        session: AsyncSession = Depends(db_helper.session_getter)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    session: AsyncSession = Depends(db_helper.session_getter),
 ) -> User:
     """
     Dependency для получения текущего пользователя из JWT токена.
@@ -30,48 +31,37 @@ async def get_current_user(
 
     try:
         payload = jwt.decode(
-            token,
-            settings.auth.secret_key,
-            algorithms=[settings.auth.algorithm]
+            token, settings.auth.secret_key, algorithms=[settings.auth.algorithm]
         )
         user_id: str = payload.get("sub")
         if user_id is None:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token payload"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
             )
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials"
+            detail="Could not validate credentials",
         )
 
-    stmt = (
-        select(User)
-        .options(selectinload(User.roles))
-        .where(User.id == int(user_id))
-    )
+    stmt = select(User).options(selectinload(User.roles)).where(User.id == int(user_id))
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
 
     if user is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
         )
 
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User is inactive"
+            status_code=status.HTTP_403_FORBIDDEN, detail="User is inactive"
         )
 
     return user
 
 
-async def require_admin(
-        current_user: User = Depends(get_current_user)
-) -> User:
+async def require_admin(current_user: User = Depends(get_current_user)) -> User:
     """
     Dependency для проверки, что пользователь — админ.
 
@@ -84,8 +74,7 @@ async def require_admin(
 
     if "admin" not in role_names:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
         )
 
     return current_user

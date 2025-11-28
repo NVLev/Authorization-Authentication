@@ -1,12 +1,12 @@
 from .models import (
-    Base,
-    User,
-    Role,
-    UserRole,
-    RefreshToken,
-    BusinessElement,
     AccessRule,
-    Project
+    Base,
+    BusinessElement,
+    Project,
+    RefreshToken,
+    Role,
+    User,
+    UserRole,
 )
 
 __all__ = [
@@ -17,5 +17,5 @@ __all__ = [
     "RefreshToken",
     "BusinessElement",
     "AccessRule",
-    "Project"
+    "Project",
 ]

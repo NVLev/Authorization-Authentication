@@ -1,9 +1,10 @@
 from typing import Optional
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from core.models import User, AccessRule, BusinessElement
+from core.models import AccessRule, BusinessElement, User
 
 
 class AuthorizationService:
@@ -11,11 +12,11 @@ class AuthorizationService:
 
     @staticmethod
     async def check_permission(
-            user: User,
-            element_name: str,
-            action: str,
-            resource_owner_id: Optional[int] = None,
-            session: AsyncSession = None
+        user: User,
+        element_name: str,
+        action: str,
+        resource_owner_id: Optional[int] = None,
+        session: AsyncSession = None,
     ) -> bool:
         """
         Проверяет, может ли пользователь выполнить действие над ресурсом.
@@ -49,8 +50,7 @@ class AuthorizationService:
 
         # Получаем правила доступа для ролей пользователя
         stmt = select(AccessRule).where(
-            AccessRule.role_id.in_(user_role_ids),
-            AccessRule.element_id == element.id
+            AccessRule.role_id.in_(user_role_ids), AccessRule.element_id == element.id
         )
         result = await session.execute(stmt)
         rules = result.scalars().all()
@@ -69,7 +69,6 @@ class AuthorizationService:
             if action == "create" and rule.create_permission:
                 return True
 
-
             if resource_owner_id is not None and resource_owner_id == user.id:
                 if action == "read" and rule.read_permission:
                     return True
@@ -81,10 +80,7 @@ class AuthorizationService:
         return False
 
     @staticmethod
-    async def get_user_permissions(
-            user: User,
-            session: AsyncSession
-    ) -> dict:
+    async def get_user_permissions(user: User, session: AsyncSession) -> dict:
         """
         Возвращает все права пользователя в структурированном виде.
 
