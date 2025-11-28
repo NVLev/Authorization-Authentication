@@ -4,7 +4,7 @@
 """
 import asyncio
 from core.db_helper import db_helper
-from core.models import Role, BusinessElement, AccessRule, User
+from core.models import Role, BusinessElement, AccessRule, User, UserRole
 from services.auth_service import AuthService
 
 
@@ -55,10 +55,10 @@ async def seed_database():
         manager_projects_rule = AccessRule(
             role_id=manager_role.id,
             element_id=projects_el.id,
-            read_all_permission=True,  # Видит все проекты
+            read_all_permission=True,
             create_permission=True,
-            update_permission=True,  # Редактирует только свои
-            delete_permission=True,  # Удаляет только свои
+            update_permission=True,
+            delete_permission=True,
         )
         session.add(manager_projects_rule)
 
@@ -66,7 +66,7 @@ async def seed_database():
         user_projects_rule = AccessRule(
             role_id=user_role.id,
             element_id=projects_el.id,
-            read_permission=True,  # Только свои
+            read_permission=True,
             create_permission=True,
             update_permission=True,
             delete_permission=True,
@@ -79,12 +79,14 @@ async def seed_database():
         # 6. Создаём тестовых пользователей
         admin_user = User(
             email="admin@test.com",
-            pass_hash=AuthService.get_password_hash("admin"),
+            pass_hash=AuthService.get_password_hash("admin123"),
             is_active=True,
         )
         session.add(admin_user)
         await session.flush()
-        admin_user.roles.append(admin_role)
+        admin_user_role = UserRole(user_id=admin_user.id, role_id=admin_role.id)
+        session.add(admin_user_role)
+
 
         manager_user = User(
             email="manager@test.com",
@@ -93,7 +95,9 @@ async def seed_database():
         )
         session.add(manager_user)
         await session.flush()
-        manager_user.roles.append(manager_role)
+
+        manager_user_role = UserRole(user_id=manager_user.id, role_id=manager_role.id)
+        session.add(manager_user_role)
 
         regular_user = User(
             email="user@test.com",
@@ -102,18 +106,20 @@ async def seed_database():
         )
         session.add(regular_user)
         await session.flush()
-        regular_user.roles.append(user_role)
+
+        regular_user_role = UserRole(user_id=regular_user.id, role_id=user_role.id)
+        session.add(regular_user_role)
 
         await session.commit()
-        print("✅ Test users created")
+        print("Test users created")
 
         print("\n" + "=" * 60)
-        print("🎉 Database seeded successfully!")
+        print("Database seeded successfully!")
         print("=" * 60)
-        print("\n📋 Test accounts:")
-        print(f"  👑 Admin:   admin@test.com / admin123    (full access)")
-        print(f"  📊 Manager: manager@test.com / manager123 (read all, edit own)")
-        print(f"  👤 User:    user@test.com / user123       (own only)")
+        print("\nTest accounts:")
+        print(f"  Admin:   admin@test.com / admin123    (full access)")
+        print(f"  Manager: manager@test.com / manager123 (read all, edit own)")
+        print(f"  User:    user@test.com / user123       (own only)")
         print("\n💡 Tip: Use these credentials to test the API\n")
 
 

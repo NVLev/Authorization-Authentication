@@ -2,7 +2,7 @@ from datetime import datetime, timezone, timedelta
 
 from jose import JWTError, jwt
 
-from ..config import settings
+from config import settings
 from services.auth_service import AuthService, pwd_context
 from core.db_helper import db_helper
 from core.models import User, RefreshToken
