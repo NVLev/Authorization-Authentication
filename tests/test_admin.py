@@ -7,8 +7,7 @@ class TestAdminRoles:
     async def test_list_roles_as_admin(self, client, admin_token):
         """Админ может просматривать роли"""
         response = await client.get(
-            "/admin/roles",
-            headers={"Authorization": f"Bearer {admin_token}"}
+            "/admin/roles", headers={"Authorization": f"Bearer {admin_token}"}
         )
 
         assert response.status_code == 200
@@ -22,8 +21,7 @@ class TestAdminRoles:
     async def test_list_roles_as_user_forbidden(self, client, user_token):
         """Обычный пользователь не может просматривать роли"""
         response = await client.get(
-            "/admin/roles",
-            headers={"Authorization": f"Bearer {user_token}"}
+            "/admin/roles", headers={"Authorization": f"Bearer {user_token}"}
         )
 
         assert response.status_code == 403
@@ -35,8 +33,7 @@ class TestAdminResources:
     async def test_list_resources_as_admin(self, client, admin_token):
         """Админ может просматривать ресурсы"""
         response = await client.get(
-            "/admin/resources",
-            headers={"Authorization": f"Bearer {admin_token}"}
+            "/admin/resources", headers={"Authorization": f"Bearer {admin_token}"}
         )
 
         assert response.status_code == 200
@@ -52,8 +49,7 @@ class TestAdminAccessRules:
     async def test_list_rules_as_admin(self, client, admin_token):
         """Админ может просматривать правила доступа"""
         response = await client.get(
-            "/admin/rules",
-            headers={"Authorization": f"Bearer {admin_token}"}
+            "/admin/rules", headers={"Authorization": f"Bearer {admin_token}"}
         )
 
         assert response.status_code == 200
@@ -69,8 +65,7 @@ class TestAdminAccessRules:
     async def test_list_rules_as_manager_forbidden(self, client, manager_token):
         """Менеджер не может просматривать правила"""
         response = await client.get(
-            "/admin/rules",
-            headers={"Authorization": f"Bearer {manager_token}"}
+            "/admin/rules", headers={"Authorization": f"Bearer {manager_token}"}
         )
 
         assert response.status_code == 403

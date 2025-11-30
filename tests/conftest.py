@@ -1,15 +1,15 @@
-
-import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient
 from asgi_lifespan import LifespanManager
-from httpx import AsyncClient, ASGITransport
-from main import app
-from core.db_helper import db_helper
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.db_helper import db_helper
+from main import app
 
 
 @pytest_asyncio.fixture
@@ -28,11 +28,9 @@ async def client(db_session):
     transport = ASGITransport(app=app)
 
     async with LifespanManager(app):
-        async with AsyncClient(
-            transport=transport,
-            base_url="http://test"
-        ) as ac:
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
             yield ac
+
 
 @pytest_asyncio.fixture
 async def admin_token(client):
@@ -62,4 +60,3 @@ async def user_token(client):
     )
     assert response.status_code == 200
     return response.json()["access_token"]
-

@@ -10,7 +10,7 @@ class TestAuthorizationServiceViaAPI:
         resp = await client.post(
             "/projects/",
             json={"title": "Admin Project", "description": "Full access"},
-            headers=headers
+            headers=headers,
         )
         assert resp.status_code == 200
         project = resp.json()
@@ -23,7 +23,7 @@ class TestAuthorizationServiceViaAPI:
         resp_patch = await client.patch(
             f"/projects/{project_id}",
             json={"title": "Updated Admin Project"},
-            headers=headers
+            headers=headers,
         )
         assert resp_patch.status_code == 200
         assert resp_patch.json()["title"] == "Updated Admin Project"
@@ -37,14 +37,16 @@ class TestAuthorizationServiceViaAPI:
         resp = await client.get("/projects/", headers=headers)
         assert resp.status_code == 200
 
-    async def test_manager_can_update_own_only(self, client, manager_token, admin_token):
+    async def test_manager_can_update_own_only(
+        self, client, manager_token, admin_token
+    ):
         headers_manager = {"Authorization": f"Bearer {manager_token}"}
         headers_admin = {"Authorization": f"Bearer {admin_token}"}
 
         resp_own = await client.post(
             "/projects/",
             json={"title": "Manager Project", "description": "Own only"},
-            headers=headers_manager
+            headers=headers_manager,
         )
         assert resp_own.status_code == 200
         own_project_id = resp_own.json()["id"]
@@ -52,21 +54,21 @@ class TestAuthorizationServiceViaAPI:
         resp_other = await client.post(
             "/projects/",
             json={"title": "Admin Project", "description": "Owned by admin"},
-            headers=headers_admin
+            headers=headers_admin,
         )
         other_project_id = resp_other.json()["id"]
 
         resp_patch_own = await client.patch(
             f"/projects/{own_project_id}",
             json={"title": "Updated Manager Project"},
-            headers=headers_manager
+            headers=headers_manager,
         )
         assert resp_patch_own.status_code == 200
 
         resp_patch_other = await client.patch(
             f"/projects/{other_project_id}",
             json={"title": "Hack attempt"},
-            headers=headers_manager
+            headers=headers_manager,
         )
         assert resp_patch_other.status_code == 403
 
@@ -77,7 +79,7 @@ class TestAuthorizationServiceViaAPI:
         resp_own = await client.post(
             "/projects/",
             json={"title": "User Project", "description": "Own only"},
-            headers=headers_user
+            headers=headers_user,
         )
         assert resp_own.status_code == 200
         own_project_id = resp_own.json()["id"]
@@ -85,15 +87,19 @@ class TestAuthorizationServiceViaAPI:
         resp_other = await client.post(
             "/projects/",
             json={"title": "Admin Project", "description": "Owned by admin"},
-            headers=headers_admin
+            headers=headers_admin,
         )
         other_project_id = resp_other.json()["id"]
 
-        resp_get_own = await client.get(f"/projects/{own_project_id}", headers=headers_user)
+        resp_get_own = await client.get(
+            f"/projects/{own_project_id}", headers=headers_user
+        )
         assert resp_get_own.status_code == 200
 
         # Чтение чужого проекта → 403
-        resp_get_other = await client.get(f"/projects/{other_project_id}", headers=headers_user)
+        resp_get_other = await client.get(
+            f"/projects/{other_project_id}", headers=headers_user
+        )
         assert resp_get_other.status_code == 403
 
     async def test_get_user_permissions_via_api(self, client, admin_token):

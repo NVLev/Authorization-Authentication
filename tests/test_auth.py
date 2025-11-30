@@ -1,4 +1,5 @@
 import pytest
+
 from services.auth_service import AuthService
 
 
@@ -33,12 +34,9 @@ class TestAuthService:
     async def test_authenticate_success(self, db_session):
         """Тест успешной аутентификации"""
         result = await AuthService.authenticate(
-            email="admin@test.com",
-            password="admin123",
-            session=db_session
+            email="admin@test.com", password="admin123", session=db_session
         )
 
         assert "access_token" in result
         assert "refresh_token" in result
         assert result["token_type"] == "bearer"
-
