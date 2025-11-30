@@ -76,7 +76,6 @@ class AuthService:
     async def persist_refresh_token(
         cls, user_id: int, refresh_token: str, session: AsyncSession
     ):
-        # Отзываем старые токены
         stmt = select(RefreshToken).where(
             RefreshToken.user_id == user_id,
             RefreshToken.revoked == False,
@@ -85,7 +84,6 @@ class AuthService:
         for token in result.scalars().all():
             token.revoked = True
 
-        # Сохраняем новый токен
         hashed = pwd_context.hash(refresh_token)
         new_token = RefreshToken(
             user_id=user_id,
@@ -109,7 +107,6 @@ class AuthService:
         if not user_data.email or not user_data.password:
             raise HTTPException(status_code=400, detail="Email и пароль обязательны")
 
-        # Упрощенная проверка существования пользователя
         existing_user = await session.execute(
             select(User).where(User.email == user_data.email)
         )

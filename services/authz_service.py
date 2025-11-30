@@ -34,21 +34,18 @@ class AuthorizationService:
         if not session:
             raise ValueError("Session is required")
 
-        # Получаем бизнес-элемент
         stmt = select(BusinessElement).where(BusinessElement.name == element_name)
         result = await session.execute(stmt)
         element = result.scalar_one_or_none()
 
         if not element:
-            return False  # Ресурс не существует
+            return False
 
-        # Получаем ID ролей пользователя
         user_role_ids = [role.id for role in user.roles]
 
         if not user_role_ids:
             return False
 
-        # Получаем правила доступа для ролей пользователя
         stmt = select(AccessRule).where(
             AccessRule.role_id.in_(user_role_ids), AccessRule.element_id == element.id
         )
@@ -58,7 +55,6 @@ class AuthorizationService:
         if not rules:
             return False
 
-        # Проверяем права по каждому правилу
         for rule in rules:
             if action == "read" and rule.read_all_permission:
                 return True

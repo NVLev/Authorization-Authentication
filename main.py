@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.db_helper import db_helper
-from routes import admin, auth, mock_resourses  # ⬅️ Теперь все импорты работают
+from routes import admin, auth, mock_resourses
 
 
 @asynccontextmanager
@@ -40,7 +40,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS (если будет фронтенд)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -49,7 +49,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Регистрация всех роутеров
+
 app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(mock_resourses.router)

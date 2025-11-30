@@ -21,6 +21,10 @@ dependencies = [
     "bcrypt (==4.0.1)",
     "black (>=25.11.0,<26.0.0)",
     "isort (>=7.0.0,<8.0.0)",
+    "pytest (>=9.0.1,<10.0.0)",
+    "pytest-asyncio (>=1.3.0,<2.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+    "asgi-lifespan (>=2.1.0,<3.0.0)",
 ]
 
 
@@ -30,3 +34,12 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.isort]
 profile = "black"
+
+[tool.poetry]
+name = "auth-system"
+packages = [
+    { include = "core" },
+    { include = "services" },
+    { include = "routes" },
+    { include = "middleware" }
+]

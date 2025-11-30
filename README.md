@@ -19,6 +19,13 @@ auth_system/
 ├── middleware/
 │   ├── __init__.py
 │   └── permissions.py    # ✅ Проверка прав (dependency)
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py          # Фикстуры (БД, клиент)
+│   ├── test_auth.py         # Тесты аутентификации
+│   ├── test_authz.py        # Тесты авторизации
+│   └── test_api.py          # Тесты API endpoints
+├── pytest.ini               # Конфигурация pytest
 ├── alembic/              # ✅ Миграции
 ├── .env                  # ✅ DB credentials, JWT secrets
 ├── pyproject.toml        # ✅ Poetry dependencies

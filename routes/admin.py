@@ -156,7 +156,6 @@ async def update_rule(
     await session.commit()
     await session.refresh(rule)
 
-    # Дозагрузка имени роли + ресурса
     role = await session.get(Role, rule.role_id)
     element = await session.get(BusinessElement, rule.element_id)
 
