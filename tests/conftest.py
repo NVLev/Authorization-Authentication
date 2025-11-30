@@ -23,13 +23,11 @@ async def db_session():
 async def client(db_session):
     """HTTP клиент, использующий ту же DB session"""
 
-    # Переопределяем зависимость БД
     app.dependency_overrides[db_helper.session_getter] = lambda: db_session
 
-    # ASGITransport — единственный метод в httpx ≥1.x
     transport = ASGITransport(app=app)
 
-    async with LifespanManager(app):   # правильное управление lifespan
+    async with LifespanManager(app):
         async with AsyncClient(
             transport=transport,
             base_url="http://test"
